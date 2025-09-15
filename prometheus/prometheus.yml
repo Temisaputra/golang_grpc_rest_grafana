@@ -1,0 +1,27 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  # Scrape prometheus itu sendiri
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["prometheus:9090"]
+
+  # Scrape aplikasi Go misalnya
+  - job_name: "rest-service"
+    static_configs:
+      - targets: ["rest-service:8085"] # Endpoint /metrics
+
+  # Scrape metrics dari Node Exporter
+  - job_name: "node-exporter"
+    static_configs:
+      - targets: ["node-exporter:9100"]
+  
+  # Scrape Loki dan Promtail jika diperlukan
+  - job_name: "loki"
+    static_configs:
+      - targets: ["loki:3100"]
+
+  - job_name: "promtail"
+    static_configs:
+      - targets: ["promtail:9080"]

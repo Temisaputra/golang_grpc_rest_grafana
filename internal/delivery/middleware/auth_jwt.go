@@ -6,14 +6,16 @@ import (
 
 	"github.com/Temisaputra/warOnk/pkg/auth"
 	"github.com/Temisaputra/warOnk/pkg/helper"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 type AuthMiddleware struct {
-	jwtSvc auth.JwtService
+	jwtSvc  auth.JwtService
+	counter prometheus.Counter
 }
 
-func NewAuthMiddleware(jwtSvc auth.JwtService) *AuthMiddleware {
-	return &AuthMiddleware{jwtSvc: jwtSvc}
+func NewAuthMiddleware(jwtSvc auth.JwtService, counter prometheus.Counter) *AuthMiddleware {
+	return &AuthMiddleware{jwtSvc: jwtSvc, counter: counter}
 }
 
 func (a *AuthMiddleware) Authorization(next http.Handler) http.Handler {
@@ -26,6 +28,7 @@ func (a *AuthMiddleware) Authorization(next http.Handler) http.Handler {
 			return
 		}
 
+		a.counter.Inc()
 		// simpan user ke context
 		r = auth.SetUserContext(r, user)
 		next.ServeHTTP(w, r)

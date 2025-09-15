@@ -9,6 +9,8 @@ import (
 	"github.com/Temisaputra/warOnk/internal/infrastructure/config"
 	"github.com/Temisaputra/warOnk/pkg/auth"
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/cors"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"go.uber.org/zap"
@@ -26,8 +28,17 @@ type Handlers struct {
 func NewRouter(handlers *Handlers) http.Handler {
 	router := mux.NewRouter()
 	config := config.Get()
-	authMW := middleware.NewAuthMiddleware(handlers.JwtService)
+	// contoh custom metric
+	opsProcessed := prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "my_app_processed_ops_total",
+		Help: "Total number of processed events",
+	})
 
+	prometheus.MustRegister(opsProcessed)
+
+	authMW := middleware.NewAuthMiddleware(handlers.JwtService, opsProcessed)
+
+	router.Handle("/metrics", promhttp.Handler())
 	router.Use(middleware.LoggingMiddleware(handlers.Logger, config)) // <- inject logger
 
 	// Swagger endpoint
